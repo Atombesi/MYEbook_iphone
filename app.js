@@ -695,13 +695,15 @@ $("googleLogin").addEventListener("click", async () => {
     await googleAuthorizeForNotes();
     await googleLoadPersonalArchive();
 
-    button.textContent = "✓ Google collegato";
+   button.textContent = "✓ Collegato";
+    button.classList.add("connected");
 
     // Aggiorna le icone dei libri e degli autori
     render();
 
   } catch (error) {
-    button.textContent = "🔗 Collega Google";
+     button.textContent = "Non collegato";
+    button.classList.remove("connected");
     console.error(error);
     alert("Collegamento Google non riuscito: " + error.message);
 
