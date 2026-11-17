@@ -513,6 +513,7 @@ async function openBookNotes() {
     $("notesMessage").textContent = data
       ? "Note caricate da Google Drive."
       : "Nessuna nota personale per questo libro.";
+$("saveBookNotes").disabled = false;
 
   } catch (error) {
     if (selected !== book) return;
@@ -535,10 +536,50 @@ $("openNotes").addEventListener("click", () => {
 
 $("closeNotes").addEventListener("click", closeBookNotes);
 
-$("saveBookNotes").addEventListener("click", () => {
+
+$("saveBookNotes").addEventListener("click", async () => {
+  if (!selected) return;
+
+  const book = selected;
+  const button = $("saveBookNotes");
+
+  const status = document.querySelector(
+    'input[name="bookStatus"]:checked'
+  )?.value || "";
+
+  const changes = {
+    status: status,
+    rating: currentRating,
+    note: $("bookNote").value
+  };
+
+  button.disabled = true;
   $("notesMessage").textContent =
-    "Interfaccia pronta. Il salvataggio su Google Drive sarà attivato nel prossimo passaggio.";
+    "Salvataggio su Google Drive...";
+
+  try {
+    await googleSaveBookNotes(book, changes);
+
+    if (selected === book) {
+      $("notesMessage").textContent =
+        "Note salvate correttamente su Google Drive.";
+    }
+
+  } catch (error) {
+    if (selected === book) {
+      $("notesMessage").textContent =
+        "Errore nel salvataggio: " + error.message;
+    }
+
+    console.error(error);
+
+  } finally {
+    if (selected === book) {
+      button.disabled = false;
+    }
+  }
 });
+
 
 initialLoad().catch(error => {
   console.error(error);
