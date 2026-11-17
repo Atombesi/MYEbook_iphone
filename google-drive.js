@@ -73,6 +73,23 @@ async function googleApi(url, options = {}) {
         if (response.status === 401) {
             googleAccessToken = null;
             googleSetConnected(false);
+            if (!data || typeof data.notes !== "object" ||
+        data.notes === null || Array.isArray(data.notes)) {
+        throw new Error("Archivio Note non valido.");
+    }
+
+    personalArchiveFileId = file.id;
+    personalArchive = data;
+
+    return personalArchive;
+}
+
+async function googleReadBookNotes(book) {
+    const archive = await googleLoadPersonalArchive();
+    const key = book.author + "|" + book.title;
+
+    return archive.notes[key] || null;
+}
         }
 
         const details = await response.text();
