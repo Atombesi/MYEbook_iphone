@@ -713,6 +713,43 @@ $("googleLogin").addEventListener("click", async () => {
 });
 
 
+$("importAndroidBackup").addEventListener("click", () => {
+  $("androidBackupFile").click();
+});
+
+$("androidBackupFile").addEventListener("change", async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  try {
+    const text = await file.text();
+    const backup = JSON.parse(text);
+
+    if (
+      backup.version !== 1 ||
+      !backup.notes ||
+      typeof backup.notes !== "object" ||
+      Array.isArray(backup.notes)
+    ) {
+      throw new Error("Formato backup Android non valido.");
+    }
+
+    const total = Object.keys(backup.notes).length;
+
+    alert(
+      "Backup Android letto correttamente.\n\n" +
+      "File: " + file.name + "\n" +
+      "Libri con dati personali: " + total + "\n\n" +
+      "Nessun dato è stato ancora modificato."
+    );
+
+  } catch (error) {
+    alert("Errore nella lettura del backup:\n" + error.message);
+  } finally {
+    event.target.value = "";
+  }
+});
+
 initialLoad().catch(error => {
   console.error(error);
   showSetup();
