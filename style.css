@@ -373,3 +373,14 @@ button {
 #settings {
   width: 34px;
 }
+/* Stato collegamento Google */
+
+#googleLogin {
+  background: #6b7280;
+  color: white;
+}
+
+#googleLogin.connected {
+  background: #16803c;
+  color: white;
+}
