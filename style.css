@@ -385,8 +385,13 @@ button {
   color: white;
 }
 /* Allineamento comandi con la casella di ricerca */
+
 @media (min-width: 601px) {
   .actions {
     width: calc(100% - 184px);
   }
+}
+button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
