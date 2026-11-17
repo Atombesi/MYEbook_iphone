@@ -703,6 +703,7 @@ $("googleLogin").addEventListener("click", async () => {
 
   button.disabled = true;
   button.textContent = "Collegamento Google...";
+    $("openNotes").disabled = false;
 
   try {
     await googleAuthorizeForNotes();
@@ -710,7 +711,7 @@ $("googleLogin").addEventListener("click", async () => {
 
    button.textContent = "✓ Collegato";
     button.classList.add("connected");
-
+   $("openNotes").disabled = true;
     // Aggiorna le icone dei libri e degli autori
     render();
 
@@ -777,7 +778,7 @@ $("androidBackupFile").addEventListener("change", async (event) => {
     // Aggiorna l'interfaccia.
     $("googleLogin").textContent = "✓ Collegato";
     $("googleLogin").classList.add("connected");
-
+    $("openNotes").disabled = false;
     render();
 
     alert(
