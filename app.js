@@ -472,15 +472,58 @@ function closeBookNotes() {
   $("openNotes").textContent = "📝 Note ▾";
 }
 
-function openBookNotes() {
+
+async function openBookNotes() {
   if (!selected) return;
+
+  const book = selected;
 
   $("notesPanel").classList.remove("hidden");
   $("openNotes").textContent = "📝 Note ▴";
-  $("notesMessage").textContent = "";
+  $("notesMessage").textContent = "Caricamento Note...";
 
+  $("saveBookNotes").disabled = true;
+
+  currentRating = 0;
+  $("statusNone").checked = true;
+  $("bookNote").value = "";
   renderRatingStars();
+
+  try {
+    await googleAuthorizeForNotes();
+
+    const data = await googleReadBookNotes(book);
+
+    // Evita di mostrare le note di un libro
+    // se nel frattempo ne è stato selezionato un altro.
+    if (selected !== book) return;
+
+    if (data) {
+      if (data.status === "READ") {
+        $("statusRead").checked = true;
+      } else if (data.status === "TO_READ") {
+        $("statusToRead").checked = true;
+      }
+
+      currentRating = Number(data.rating) || 0;
+      $("bookNote").value = data.note || "";
+      renderRatingStars();
+    }
+
+    $("notesMessage").textContent = data
+      ? "Note caricate da Google Drive."
+      : "Nessuna nota personale per questo libro.";
+
+  } catch (error) {
+    if (selected !== book) return;
+
+    $("notesMessage").textContent =
+      "Impossibile caricare le Note: " + error.message;
+
+    console.error(error);
+  }
 }
+
 
 $("openNotes").addEventListener("click", () => {
   if ($("notesPanel").classList.contains("hidden")) {
