@@ -108,7 +108,8 @@ button {
 }
 
 #check {
-  flex: 1;
+  flex: 0 0 auto;
+  background: #64748b;
 }
 
 #settings {
