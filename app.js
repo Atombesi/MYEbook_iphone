@@ -199,9 +199,19 @@ function renderByAuthor(fragment) {
 
     const isOpen = expandedAuthor === key;
 
+  
     header.style.fontWeight = "bold";
     header.textContent =
       `${isOpen ? "▼" : "▶"} ${group.author} (${group.books.length})`;
+
+    // Mostra l'icona se almeno un libro
+    // dell'autore contiene informazioni personali.
+    if (group.books.some(book => bookHasNotes(book))) {
+      const icon = document.createElement("span");
+      icon.textContent = " 📝";
+      icon.title = "Questo autore ha libri con informazioni personali";
+      header.appendChild(icon);
+    }
 
     const content = document.createElement("div");
     content.className = "author-books";
