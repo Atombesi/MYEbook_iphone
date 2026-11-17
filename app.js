@@ -552,10 +552,13 @@ async function openBookNotes() {
       renderRatingStars();
     }
 
-    $("notesMessage").textContent = data
+  $("notesMessage").textContent = data
       ? "Note caricate da Google Drive."
       : "Nessuna nota personale per questo libro.";
-$("saveBookNotes").disabled = false;
+
+    render();
+
+    $("saveBookNotes").disabled = false;
 
   } catch (error) {
     if (selected !== book) return;
