@@ -3,11 +3,13 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#1f2937">
 <title>MY Ebook</title>
 <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 <header>
   <h1>MY Ebook</h1>
@@ -17,16 +19,23 @@
 <main>
   <section id="setup" class="panel hidden">
     <h2>Configurazione</h2>
-    <p>Inserisci il link pubblico Dropbox del file <b>Ebook_index.txt</b>.</p>
+    <p>Inserisci il link pubblico Dropbox del file
+       <b>Ebook_index.txt</b>.</p>
+
     <input id="dropboxUrl" type="url" inputmode="url"
-           placeholder="https://www.dropbox.com/..." autocomplete="off">
+           placeholder="https://www.dropbox.com/..."
+           autocomplete="off">
+
     <button id="saveUrl">Salva e carica indice</button>
     <div id="setupMessage" class="message"></div>
   </section>
 
   <section id="library" class="hidden">
     <div class="toolbar">
-      <input id="search" type="search" placeholder="Cerca autore o titolo..." autocomplete="off">
+      <input id="search" type="search"
+             placeholder="Cerca autore o titolo..."
+             autocomplete="off">
+
       <button id="sortAuthor" class="sort active">Autore</button>
       <button id="sortTitle" class="sort">Titolo</button>
       <button id="sortDirection" class="sort">↑</button>
@@ -41,7 +50,7 @@
     <div id="count"></div>
     <div id="results"></div>
 
-    <!-- Prova collegamento Google Drive -->
+    <!-- Test Google Drive -->
     <section id="googleDriveTest" class="panel">
       <h3>Google Drive — Prova collegamento</h3>
 
@@ -56,16 +65,75 @@
   </section>
 </main>
 
+<!-- Barra del libro selezionato -->
 <div id="selectedBar" class="selected-bar hidden">
+
   <div id="selectedBook"></div>
+
   <div class="selected-buttons">
     <button id="searchAuthor">🌐 Autore</button>
     <button id="searchBook">🌐 Libro</button>
+    <button id="openNotes">📝 Note ▾</button>
+  </div>
+
+  <!-- Pannello Note -->
+  <div id="notesPanel" class="notes-panel hidden">
+
+    <div class="notes-heading">Informazioni personali</div>
+
+    <div class="notes-section">
+      <div class="notes-label">Stato del libro</div>
+
+      <label>
+        <input type="radio" name="bookStatus"
+               id="statusNone" value="" checked>
+        Nessuno
+      </label>
+
+      <label>
+        <input type="radio" name="bookStatus"
+               id="statusRead" value="READ">
+        Letto
+      </label>
+
+      <label>
+        <input type="radio" name="bookStatus"
+               id="statusToRead" value="TO_READ">
+        Da leggere
+      </label>
+    </div>
+
+    <div class="notes-section">
+      <div class="notes-label">Valutazione</div>
+
+      <div id="ratingStars" class="rating-stars">
+        <!-- Le stelle saranno generate da JavaScript -->
+      </div>
+    </div>
+
+    <div class="notes-section">
+      <label class="notes-label" for="bookNote">
+        Note personali
+      </label>
+
+      <textarea id="bookNote" rows="4"
+                placeholder="Scrivi una nota su questo libro..."></textarea>
+    </div>
+
+    <div class="notes-actions">
+      <button id="saveBookNotes">Salva</button>
+      <button id="closeNotes" type="button">Chiudi</button>
+    </div>
+
+    <div id="notesMessage" class="message"></div>
+
   </div>
 </div>
 
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://accounts.google.com/gsi/client"
+        async defer></script>
 <script src="app.js"></script>
 <script src="google-drive.js"></script>
+
 </body>
 </html>
