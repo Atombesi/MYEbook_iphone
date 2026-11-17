@@ -10,6 +10,7 @@ let sortField = "author";
 let ascending = true;
 let selected = null;
 let expandedAuthor = null;
+let bookFilter = "all";
 
 const $ = id => document.getElementById(id);
 
