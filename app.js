@@ -457,6 +457,35 @@ function googleSearch(query) {
   );
 }
 
+// Gestione filtri dei libri
+const filterButtons = {
+  filterAll: "all",
+  filterRead: "read",
+  filterToRead: "toRead",
+  filterNotes: "notes"
+};
+
+Object.entries(filterButtons).forEach(([id, value]) => {
+
+  $(id).addEventListener("click", () => {
+
+    // I filtri personali richiedono Google Drive
+    if (value !== "all" && !personalArchive) {
+      alert("Prima devi collegare Google per caricare le informazioni personali.");
+      return;
+    }
+
+    bookFilter = value;
+    expandedAuthor = null;
+
+    // Evidenzia il pulsante selezionato
+    Object.keys(filterButtons).forEach(buttonId => {
+      $(buttonId).classList.toggle("active", buttonId === id);
+    });
+
+    render();
+  });
+});
 $("search").addEventListener("input", () => {
   expandedAuthor = null;
   render();
