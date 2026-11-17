@@ -238,11 +238,37 @@ function renderByAuthor(fragment) {
 function render() {
   const query = $("search").value.trim().toLocaleUpperCase("it-IT");
 
-  filteredBooks = books.filter(book =>
-    !query ||
-    book.author.toLocaleUpperCase("it-IT").includes(query) ||
-    book.title.toLocaleUpperCase("it-IT").includes(query)
-  );
+filteredBooks = books.filter(book => {
+
+    // Filtro per autore o titolo
+    const matchesSearch =
+      !query ||
+      book.author.toLocaleUpperCase("it-IT").includes(query) ||
+      book.title.toLocaleUpperCase("it-IT").includes(query);
+
+    if (!matchesSearch) return false;
+
+    // Nessun filtro personale
+    if (bookFilter === "all") return true;
+
+    // Informazioni personali del libro
+    const key = book.author + "|" + book.title;
+    const data = personalArchive?.notes?.[key];
+
+    if (!data) return false;
+
+    if (bookFilter === "read")
+      return data.status === "READ";
+
+    if (bookFilter === "toRead")
+      return data.status === "TO_READ";
+
+    if (bookFilter === "notes")
+      return typeof data.note === "string" &&
+             data.note.trim() !== "";
+
+    return true;
+  });
 
   const field = sortField;
   const direction = ascending ? 1 : -1;
