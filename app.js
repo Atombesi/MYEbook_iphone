@@ -717,9 +717,12 @@ $("importAndroidBackup").addEventListener("click", () => {
   $("androidBackupFile").click();
 });
 
+
 $("androidBackupFile").addEventListener("change", async (event) => {
   const file = event.target.files[0];
   if (!file) return;
+
+  const button = $("importAndroidBackup");
 
   try {
     const text = await file.text();
@@ -736,19 +739,54 @@ $("androidBackupFile").addEventListener("change", async (event) => {
 
     const total = Object.keys(backup.notes).length;
 
-    alert(
-      "Backup Android letto correttamente.\n\n" +
+    const conferma = confirm(
+      "IMPORTAZIONE BACKUP ANDROID\n\n" +
       "File: " + file.name + "\n" +
       "Libri con dati personali: " + total + "\n\n" +
-      "Nessun dato è stato ancora modificato."
+      "ATTENZIONE!\n" +
+      "Tutte le informazioni personali presenti " +
+      "su MYEbook Web verranno sostituite " +
+      "con quelle del backup Android.\n\n" +
+      "Vuoi procedere?"
+    );
+
+    if (!conferma) return;
+
+    button.disabled = true;
+    button.textContent = "Importazione in corso...";
+
+    // Se necessario, richiede l'autorizzazione Google.
+    await googleAuthorizeForNotes();
+
+    // Sostituisce l'archivio personale su Google Drive.
+    const imported = await googleImportAndroidBackup(backup);
+
+    // Aggiorna l'interfaccia.
+    $("googleLogin").textContent = "✓ Collegato";
+    $("googleLogin").classList.add("connected");
+
+    render();
+
+    alert(
+      "Importazione completata correttamente!\n\n" +
+      "Libri importati: " + imported + "\n\n" +
+      "L'archivio personale Web è stato sostituito."
     );
 
   } catch (error) {
-    alert("Errore nella lettura del backup:\n" + error.message);
+    console.error(error);
+
+    alert(
+      "Importazione non completata:\n" + error.message
+    );
+
   } finally {
+    button.disabled = false;
+    button.textContent = "Importa backup Android";
     event.target.value = "";
   }
 });
+
 
 initialLoad().catch(error => {
   console.error(error);
