@@ -88,6 +88,7 @@ function updateInfo(dateText) {
       : "Nessun indice locale disponibile";
 }
 
+
 function createBookElement(book, showAuthor = true) {
   const div = document.createElement("div");
   div.className = "book";
@@ -102,12 +103,43 @@ function createBookElement(book, showAuthor = true) {
   const title = document.createElement("div");
   title.className = "title";
   title.textContent = book.title;
+
+  // Icona se il libro contiene informazioni personali
+  if (bookHasNotes(book)) {
+    const icon = document.createElement("span");
+    icon.textContent = " 📝";
+    icon.title = "Informazioni personali presenti";
+    title.appendChild(icon);
+  }
+
   div.appendChild(title);
 
   div.addEventListener("click", () => selectBook(book));
 
   return div;
 }
+
+// Verifica se un libro contiene informazioni personali
+function bookHasNotes(book) {
+  if (typeof personalArchive === "undefined" ||
+      !personalArchive?.notes) {
+    return false;
+  }
+
+  const key = book.author + "|" + book.title;
+  const data = personalArchive.notes[key];
+
+  if (!data) return false;
+
+  return (
+    data.status === "READ" ||
+    data.status === "TO_READ" ||
+    Number(data.rating) > 0 ||
+    (typeof data.note === "string" &&
+     data.note.trim() !== "")
+  );
+}
+
 
 function renderByTitle(fragment) {
   for (const book of filteredBooks.slice(0, 500)) {
