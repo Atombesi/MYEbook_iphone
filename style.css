@@ -385,7 +385,8 @@ button {
   color: white;
 }
 /* Allineamento comandi con la casella di ricerca */
-
-.actions {
-  padding-right: 184px;
+@media (min-width: 601px) {
+  .actions {
+    width: calc(100% - 184px);
+  }
 }
