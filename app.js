@@ -767,11 +767,16 @@ $("androidBackupFile").addEventListener("change", async (event) => {
 
     render();
 
+    render();
+
     alert(
       "Importazione completata correttamente!\n\n" +
       "Libri importati: " + imported + "\n\n" +
       "L'archivio personale Web è stato sostituito."
     );
+
+    // Torna automaticamente alla biblioteca
+    showLibrary();
 
   } catch (error) {
     console.error(error);
