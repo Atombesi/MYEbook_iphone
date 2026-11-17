@@ -27,6 +27,25 @@
            autocomplete="off">
 
     <button id="saveUrl">Salva e carica indice</button>
+    <hr>
+
+<h3>Importazione dati da MYEbook Android</h3>
+
+<p>
+  Importa le informazioni personali dal backup Android.
+  L'archivio Web esistente verrà completamente sostituito.
+</p>
+
+<button id="importAndroidBackup" type="button">
+  Importa backup Android
+</button>
+
+<input
+  type="file"
+  id="androidBackupFile"
+  accept=".json,application/json"
+  style="display:none"
+>
     <div id="setupMessage" class="message"></div>
   </section>
 
