@@ -404,3 +404,105 @@ googleRead.addEventListener(
 // =========================================
 
 googleSetConnected(false);
+
+/* =========================================
+   MYEbook - Salvataggio archivio personale
+   ========================================= */
+
+async function googleSaveBookNotes(book, changes) {
+    if (!googleAccessToken) {
+        throw new Error("Google Drive non collegato.");
+    }
+
+    // Recupera l'archivio personale.
+    const archive = await googleLoadPersonalArchive();
+
+    const key = book.author + "|" + book.title;
+
+    // Prepara una copia senza alterare l'archivio
+    // originale prima che Drive confermi il salvataggio.
+    const updatedArchive = {
+        ...archive,
+        date: new Date().toISOString(),
+        notes: {
+            ...archive.notes,
+            [key]: {
+                ...(archive.notes[key] || {}),
+                status: changes.status,
+                rating: changes.rating,
+                note: changes.note,
+                updatedAt: new Date().toISOString()
+            }
+        }
+    };
+
+    const json = JSON.stringify(updatedArchive);
+
+    let response;
+
+    if (personalArchiveFileId) {
+
+        // Aggiorna il file già esistente.
+        response = await googleApi(
+            "https://www.googleapis.com/upload/drive/v3/files/" +
+            encodeURIComponent(personalArchiveFileId) +
+            "?uploadType=media",
+            {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json; charset=UTF-8"
+                },
+                body: json
+            }
+        );
+
+    } else {
+
+        // Crea il file nella cartella privata dell'app.
+        const boundary = "myebook_" + Date.now();
+
+        const metadata = {
+            name: GOOGLE_NOTES_FILE,
+            mimeType: "application/json",
+            parents: ["appDataFolder"]
+        };
+
+        const body =
+            "--" + boundary + "\r\n" +
+            "Content-Type: application/json; charset=UTF-8\r\n\r\n" +
+            JSON.stringify(metadata) + "\r\n" +
+            "--" + boundary + "\r\n" +
+            "Content-Type: application/json; charset=UTF-8\r\n\r\n" +
+            json + "\r\n" +
+            "--" + boundary + "--";
+
+        response = await googleApi(
+            "https://www.googleapis.com/upload/drive/v3/files" +
+            "?uploadType=multipart",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type":
+                        "multipart/related; boundary=" + boundary
+                },
+                body
+            }
+        );
+    }
+
+    // Aggiorna la memoria soltanto dopo
+    // la conferma di Google Drive.
+    const result = await response.json();
+
+    if (!result.id) {
+        throw new Error(
+            "Google Drive non ha confermato il file."
+        );
+    }
+
+    personalArchiveFileId = result.id;
+    personalArchive = updatedArchive;
+
+    return true;
+}
+
