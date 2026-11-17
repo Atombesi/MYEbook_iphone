@@ -226,10 +226,23 @@ function render() {
   $("results").replaceChildren(fragment);
 }
 
+
 function selectBook(book) {
   selected = book;
-  $("selectedBook").textContent = `${book.author} — ${book.title}`;
+
+  $("selectedBook").textContent =
+    `${book.author} — ${book.title}`;
+
   $("selectedBar").classList.remove("hidden");
+
+  // Chiude le note del libro precedente
+  closeBookNotes();
+
+  // Azzera i campi in attesa del caricamento da Drive
+  currentRating = 0;
+  $("statusNone").checked = true;
+  $("bookNote").value = "";
+  $("notesMessage").textContent = "";
 }
 
 function escapeHtml(value) {
@@ -424,6 +437,64 @@ $("searchAuthor").addEventListener("click", () => {
 $("searchBook").addEventListener("click", () => {
   if (selected)
     googleSearch(`"${selected.title}" "${selected.author}"`);
+});
+
+/* =========================================
+   MYEbook - Gestione interfaccia Note
+   ========================================= */
+
+let currentRating = 0;
+
+// Scala di valutazione Android: 3 stelle
+const MAX_RATING = 3;
+
+function renderRatingStars() {
+  const container = $("ratingStars");
+  container.replaceChildren();
+
+  for (let i = 1; i <= MAX_RATING; i++) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = "★";
+    button.classList.toggle("active", i <= currentRating);
+
+    button.addEventListener("click", () => {
+      currentRating = currentRating === i ? 0 : i;
+      renderRatingStars();
+    });
+
+    container.appendChild(button);
+  }
+}
+
+function closeBookNotes() {
+  $("notesPanel").classList.add("hidden");
+  $("openNotes").textContent = "📝 Note ▾";
+}
+
+function openBookNotes() {
+  if (!selected) return;
+
+  $("notesPanel").classList.remove("hidden");
+  $("openNotes").textContent = "📝 Note ▴";
+  $("notesMessage").textContent = "";
+
+  renderRatingStars();
+}
+
+$("openNotes").addEventListener("click", () => {
+  if ($("notesPanel").classList.contains("hidden")) {
+    openBookNotes();
+  } else {
+    closeBookNotes();
+  }
+});
+
+$("closeNotes").addEventListener("click", closeBookNotes);
+
+$("saveBookNotes").addEventListener("click", () => {
+  $("notesMessage").textContent =
+    "Interfaccia pronta. Il salvataggio su Google Drive sarà attivato nel prossimo passaggio.";
 });
 
 initialLoad().catch(error => {
