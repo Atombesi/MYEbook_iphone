@@ -506,3 +506,116 @@ async function googleSaveBookNotes(book, changes) {
     return true;
 }
 
+
+/* =========================================
+   Importazione completa backup Android
+   ========================================= */
+
+async function googleImportAndroidBackup(backup) {
+
+    if (!backup ||
+        backup.version !== 1 ||
+        !backup.notes ||
+        typeof backup.notes !== "object" ||
+        Array.isArray(backup.notes)) {
+        throw new Error("Backup Android non valido.");
+    }
+
+    if (!googleAccessToken) {
+        throw new Error("Google Drive non collegato.");
+    }
+
+    // Carica l'archivio esistente per individuare
+    // il file Google Drive da sostituire.
+    await googleLoadPersonalArchive();
+
+    // Normalizza le chiavi come nell'app Android.
+    const notes = {};
+
+    for (const [key, value] of Object.entries(backup.notes)) {
+        const separator = key.indexOf("|");
+
+        if (separator < 0) {
+            throw new Error("Chiave libro non valida: " + key);
+        }
+
+        const author = key.slice(0, separator).trim().toUpperCase();
+        const title = key.slice(separator + 1).trim().toUpperCase();
+
+        notes[author + "|" + title] = value;
+    }
+
+    // Sostituzione completa, senza fusione.
+    const archive = {
+        version: 1,
+        date: new Date().toISOString(),
+        notes: notes
+    };
+
+    const json = JSON.stringify(archive);
+    let response;
+
+    if (personalArchiveFileId) {
+
+        response = await googleApi(
+            "https://www.googleapis.com/upload/drive/v3/files/" +
+            encodeURIComponent(personalArchiveFileId) +
+            "?uploadType=media",
+            {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json; charset=UTF-8"
+                },
+                body: json
+            }
+        );
+
+    } else {
+
+        const boundary = "myebook_import_" + Date.now();
+
+        const metadata = {
+            name: GOOGLE_NOTES_FILE,
+            mimeType: "application/json",
+            parents: ["appDataFolder"]
+        };
+
+        const body =
+            "--" + boundary + "\r\n" +
+            "Content-Type: application/json; charset=UTF-8\r\n\r\n" +
+            JSON.stringify(metadata) + "\r\n" +
+            "--" + boundary + "\r\n" +
+            "Content-Type: application/json; charset=UTF-8\r\n\r\n" +
+            json + "\r\n" +
+            "--" + boundary + "--";
+
+        response = await googleApi(
+            "https://www.googleapis.com/upload/drive/v3/files" +
+            "?uploadType=multipart",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type":
+                        "multipart/related; boundary=" + boundary
+                },
+                body
+            }
+        );
+    }
+
+    // Aggiorna i dati in memoria soltanto
+    // dopo la conferma di Google Drive.
+    const result = await response.json();
+
+    if (!result.id) {
+        throw new Error(
+            "Google Drive non ha confermato il salvataggio."
+        );
+    }
+
+    personalArchiveFileId = result.id;
+    personalArchive = archive;
+
+    return Object.keys(notes).length;
+}
+
