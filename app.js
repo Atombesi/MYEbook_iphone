@@ -470,6 +470,14 @@ function googleSearch(query) {
   );
 }
 
+
+function abilitaFiltriPersonali(abilita) {
+  $("filterRead").disabled = !abilita;
+  $("filterToRead").disabled = !abilita;
+  $("filterNotes").disabled = !abilita;
+  $("openNotes").disabled = !abilita;
+}
+
 // Gestione filtri dei libri
 const filterButtons = {
   filterAll: "all",
@@ -711,6 +719,7 @@ $("googleLogin").addEventListener("click", async () => {
 
    button.textContent = "✓ Collegato";
     button.classList.add("connected");
+    abilitaFiltriPersonali(true);
    $("openNotes").disabled = true;
     // Aggiorna le icone dei libri e degli autori
     render();
@@ -718,6 +727,7 @@ $("googleLogin").addEventListener("click", async () => {
   } catch (error) {
      button.textContent = "Non collegato";
     button.classList.remove("connected");
+    abilitaFiltriPersonali(false);
     console.error(error);
     alert("Collegamento Google non riuscito: " + error.message);
 
@@ -778,6 +788,7 @@ $("androidBackupFile").addEventListener("change", async (event) => {
     // Aggiorna l'interfaccia.
     $("googleLogin").textContent = "✓ Collegato";
     $("googleLogin").classList.add("connected");
+    abilitaFiltriPersonali(true);
     $("openNotes").disabled = false;
     render();
 
