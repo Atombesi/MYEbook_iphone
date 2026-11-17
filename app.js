@@ -105,6 +105,19 @@ function createBookElement(book, showAuthor = true) {
   title.className = "title";
   title.textContent = book.title;
 
+  // Mostra le stelle se il libro è stato valutato
+  const key = book.author + "|" + book.title;
+  const rating = Number(personalArchive?.notes?.[key]?.rating) || 0;
+
+  if (rating > 0) {
+    const stars = document.createElement("span");
+    stars.textContent = " " + "★".repeat(Math.min(3, Math.floor(rating)));
+    stars.style.color = "#f5b301";
+    stars.style.whiteSpace = "nowrap";
+    stars.title = "Valutazione: " + rating + " stelle";
+    title.appendChild(stars);
+  }
+
   // Icona se il libro contiene informazioni personali
   if (bookHasNotes(book)) {
     const icon = document.createElement("span");
@@ -767,16 +780,11 @@ $("androidBackupFile").addEventListener("change", async (event) => {
 
     render();
 
-    render();
-
     alert(
       "Importazione completata correttamente!\n\n" +
       "Libri importati: " + imported + "\n\n" +
       "L'archivio personale Web è stato sostituito."
     );
-
-    // Torna automaticamente alla biblioteca
-    showLibrary();
 
   } catch (error) {
     console.error(error);
