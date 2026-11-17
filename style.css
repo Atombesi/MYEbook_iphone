@@ -384,3 +384,8 @@ button {
   background: #16803c;
   color: white;
 }
+/* Allineamento comandi con la casella di ricerca */
+
+.actions {
+  padding-right: 184px;
+}
