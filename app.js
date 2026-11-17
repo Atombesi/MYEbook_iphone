@@ -629,6 +629,32 @@ $("saveBookNotes").addEventListener("click", async () => {
 });
 
 
+$("googleLogin").addEventListener("click", async () => {
+  const button = $("googleLogin");
+
+  button.disabled = true;
+  button.textContent = "Collegamento Google...";
+
+  try {
+    await googleAuthorizeForNotes();
+    await googleLoadPersonalArchive();
+
+    button.textContent = "✓ Google collegato";
+
+    // Aggiorna le icone dei libri e degli autori
+    render();
+
+  } catch (error) {
+    button.textContent = "🔗 Collega Google";
+    console.error(error);
+    alert("Collegamento Google non riuscito: " + error.message);
+
+  } finally {
+    button.disabled = false;
+  }
+});
+
+
 initialLoad().catch(error => {
   console.error(error);
   showSetup();
