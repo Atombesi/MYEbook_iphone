@@ -329,3 +329,47 @@ button {
     padding-bottom: max(8px, env(safe-area-inset-bottom));
   }
 }
+
+/* =========================================
+   Filtri libri e pulsanti compatti
+   ========================================= */
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.book-filters {
+  display: flex;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.book-filters button {
+  background: #64748b;
+  font-size: 12px;
+  min-height: 34px;
+  padding: 5px 8px;
+  white-space: nowrap;
+  border-radius: 6px;
+}
+
+.book-filters button.active {
+  background: #2563eb;
+}
+
+#googleLogin,
+#check,
+#settings {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 5px 8px;
+  font-size: 12px;
+}
+
+#settings {
+  width: 34px;
+}
