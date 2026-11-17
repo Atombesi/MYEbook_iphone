@@ -1,8 +1,10 @@
 
 "use strict";
 
-// Google Drive - MYEbook
-// Test di collegamento, scrittura e lettura JSON
+// =========================================
+// MYEbook - Google Drive
+// Collegamento, prove e lettura Note personali
+// =========================================
 
 const GOOGLE_CLIENT_ID =
     "492254401531-qbrem8uqlfq5sue5gdhv8dkdt4bplf3c.apps.googleusercontent.com";
@@ -11,14 +13,23 @@ const GOOGLE_SCOPE =
     "https://www.googleapis.com/auth/drive.appdata";
 
 const GOOGLE_TEST_FILE = "MYEbook_test.json";
+const GOOGLE_NOTES_FILE = "MYEbook_notes.json";
 
 let googleTokenClient = null;
 let googleAccessToken = null;
+
+let personalArchive = null;
+let personalArchiveFileId = null;
 
 const googleConnect = document.getElementById("googleConnect");
 const googleWrite = document.getElementById("googleWrite");
 const googleRead = document.getElementById("googleRead");
 const googleStatus = document.getElementById("googleStatus");
+
+
+// =========================================
+// Messaggi e stato collegamento
+// =========================================
 
 function googleMessage(message) {
     googleStatus.textContent = message;
@@ -29,6 +40,11 @@ function googleSetConnected(connected) {
     googleRead.disabled = !connected;
 }
 
+
+// =========================================
+// Inizializzazione Google
+// =========================================
+
 function googleInitialize() {
     if (!window.google?.accounts?.oauth2) {
         googleMessage("Libreria Google non ancora disponibile.");
@@ -38,7 +54,8 @@ function googleInitialize() {
     googleTokenClient = google.accounts.oauth2.initTokenClient({
         client_id: GOOGLE_CLIENT_ID,
         scope: GOOGLE_SCOPE,
-        callback: (response) => {
+
+        callback: response => {
             if (response.error || !response.access_token) {
                 googleMessage(
                     "Autorizzazione non riuscita: " +
@@ -56,13 +73,22 @@ function googleInitialize() {
     return true;
 }
 
+
+// =========================================
+// Richieste API Google Drive
+// =========================================
+
 async function googleApi(url, options = {}) {
     if (!googleAccessToken) {
         throw new Error("Google Drive non collegato.");
     }
 
     const headers = new Headers(options.headers || {});
-    headers.set("Authorization", "Bearer " + googleAccessToken);
+
+    headers.set(
+        "Authorization",
+        "Bearer " + googleAccessToken
+    );
 
     const response = await fetch(url, {
         ...options,
@@ -73,38 +99,32 @@ async function googleApi(url, options = {}) {
         if (response.status === 401) {
             googleAccessToken = null;
             googleSetConnected(false);
-            if (!data || typeof data.notes !== "object" ||
-        data.notes === null || Array.isArray(data.notes)) {
-        throw new Error("Archivio Note non valido.");
-    }
-
-    personalArchiveFileId = file.id;
-    personalArchive = data;
-
-    return personalArchive;
-}
-
-async function googleReadBookNotes(book) {
-    const archive = await googleLoadPersonalArchive();
-    const key = book.author + "|" + book.title;
-
-    return archive.notes[key] || null;
-}
+            personalArchive = null;
+            personalArchiveFileId = null;
         }
 
         const details = await response.text();
-        throw new Error("HTTP " + response.status + ": " + details);
+
+        throw new Error(
+            "HTTP " + response.status + ": " + details
+        );
     }
 
     return response;
 }
 
+
+// =========================================
+// Ricerca file di prova
+// =========================================
+
 async function googleFindTestFile() {
     const query = new URLSearchParams({
         spaces: "appDataFolder",
-        q: "name = '" + GOOGLE_TEST_FILE + "' and trashed = false",
+        q: "name = '" + GOOGLE_TEST_FILE +
+           "' and trashed = false",
         fields: "files(id,name),nextPageToken",
-        page_size: "100"
+        pageSize: "100"
     });
 
     const response = await googleApi(
@@ -115,6 +135,11 @@ async function googleFindTestFile() {
 
     return result.files?.[0] || null;
 }
+
+
+// =========================================
+// Scrittura file di prova
+// =========================================
 
 async function googleWriteTest() {
     try {
@@ -129,7 +154,8 @@ async function googleWriteTest() {
             date: new Date().toISOString()
         };
 
-        const boundary = "myebook_boundary_" + Date.now();
+        const boundary =
+            "myebook_boundary_" + Date.now();
 
         const metadata = {
             name: GOOGLE_TEST_FILE,
@@ -151,14 +177,19 @@ async function googleWriteTest() {
 
         const url = existingFile
             ? "https://www.googleapis.com/upload/drive/v3/files/" +
-              encodeURIComponent(existingFile.id) + "?uploadType=multipart"
-            : "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";
+              encodeURIComponent(existingFile.id) +
+              "?uploadType=multipart"
+            : "https://www.googleapis.com/upload/drive/v3/files" +
+              "?uploadType=multipart";
 
         const response = await googleApi(url, {
             method: existingFile ? "PATCH" : "POST",
+
             headers: {
-                "Content-Type": "multipart/related; boundary=" + boundary
+                "Content-Type":
+                    "multipart/related; boundary=" + boundary
             },
+
             body
         });
 
@@ -169,9 +200,16 @@ async function googleWriteTest() {
         );
 
     } catch (error) {
-        googleMessage("Errore scrittura: " + error.message);
+        googleMessage(
+            "Errore scrittura: " + error.message
+        );
     }
 }
+
+
+// =========================================
+// Lettura file di prova
+// =========================================
 
 async function googleReadTest() {
     try {
@@ -186,7 +224,8 @@ async function googleReadTest() {
 
         const response = await googleApi(
             "https://www.googleapis.com/drive/v3/files/" +
-            encodeURIComponent(file.id) + "?alt=media"
+            encodeURIComponent(file.id) +
+            "?alt=media"
         );
 
         const data = await response.json();
@@ -197,9 +236,135 @@ async function googleReadTest() {
         );
 
     } catch (error) {
-        googleMessage("Errore lettura: " + error.message);
+        googleMessage(
+            "Errore lettura: " + error.message
+        );
     }
 }
+
+
+// =========================================
+// Autorizzazione per Note personali
+// =========================================
+
+function googleAuthorizeForNotes() {
+    return new Promise((resolve, reject) => {
+        if (googleAccessToken) {
+            resolve();
+            return;
+        }
+
+        if (!googleTokenClient && !googleInitialize()) {
+            reject(new Error(
+                "Google non ancora disponibile."
+            ));
+            return;
+        }
+
+        googleTokenClient.callback = response => {
+            if (response.error || !response.access_token) {
+                reject(new Error(
+                    response.error ||
+                    "Autorizzazione non riuscita."
+                ));
+                return;
+            }
+
+            googleAccessToken = response.access_token;
+
+            googleSetConnected(true);
+            googleMessage("Google Drive collegato.");
+
+            resolve();
+        };
+
+        try {
+            googleTokenClient.requestAccessToken({
+                prompt: ""
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
+
+
+// =========================================
+// Lettura archivio personale
+// =========================================
+
+async function googleLoadPersonalArchive() {
+    if (personalArchive !== null) {
+        return personalArchive;
+    }
+
+    const query = new URLSearchParams({
+        spaces: "appDataFolder",
+        q: "name = '" + GOOGLE_NOTES_FILE +
+           "' and trashed = false",
+        fields: "nextPageToken,files(id,name)",
+        pageSize: "100"
+    });
+
+    const response = await googleApi(
+        "https://www.googleapis.com/drive/v3/files?" + query
+    );
+
+    const result = await response.json();
+    const file = result.files?.[0];
+
+    if (!file) {
+        personalArchiveFileId = null;
+
+        personalArchive = {
+            version: 1,
+            notes: {}
+        };
+
+        return personalArchive;
+    }
+
+    const contentResponse = await googleApi(
+        "https://www.googleapis.com/drive/v3/files/" +
+        encodeURIComponent(file.id) +
+        "?alt=media"
+    );
+
+    const data = await contentResponse.json();
+
+    if (!data ||
+        typeof data.notes !== "object" ||
+        data.notes === null ||
+        Array.isArray(data.notes)) {
+
+        throw new Error(
+            "Archivio Note non valido."
+        );
+    }
+
+    personalArchiveFileId = file.id;
+    personalArchive = data;
+
+    return personalArchive;
+}
+
+
+// =========================================
+// Lettura Note di un singolo libro
+// =========================================
+
+async function googleReadBookNotes(book) {
+    const archive = await googleLoadPersonalArchive();
+
+    const key = book.author + "|" + book.title;
+
+    return archive.notes[key] || null;
+}
+
+
+// =========================================
+// Pulsante collegamento manuale
+// =========================================
 
 googleConnect.addEventListener("click", () => {
     try {
@@ -212,11 +377,30 @@ googleConnect.addEventListener("click", () => {
         });
 
     } catch (error) {
-        googleMessage("Errore collegamento: " + error.message);
+        googleMessage(
+            "Errore collegamento: " + error.message
+        );
     }
 });
 
-googleWrite.addEventListener("click", googleWriteTest);
-googleRead.addEventListener("click", googleReadTest);
+
+// =========================================
+// Pulsanti di prova
+// =========================================
+
+googleWrite.addEventListener(
+    "click",
+    googleWriteTest
+);
+
+googleRead.addEventListener(
+    "click",
+    googleReadTest
+);
+
+
+// =========================================
+// Stato iniziale
+// =========================================
 
 googleSetConnected(false);
