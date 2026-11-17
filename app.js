@@ -605,6 +605,9 @@ $("saveBookNotes").addEventListener("click", async () => {
   try {
     await googleSaveBookNotes(book, changes);
 
+    // Aggiorna le icone dei libri e degli autori
+    render();
+
     if (selected === book) {
       $("notesMessage").textContent =
         "Note salvate correttamente su Google Drive.";
