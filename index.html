@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -39,6 +40,19 @@
     <div id="status" class="message"></div>
     <div id="count"></div>
     <div id="results"></div>
+
+    <!-- Prova collegamento Google Drive -->
+    <section id="googleDriveTest" class="panel">
+      <h3>Google Drive — Prova collegamento</h3>
+
+      <button id="googleConnect">Collega Google Drive</button>
+      <button id="googleWrite" disabled>Scrivi file di prova</button>
+      <button id="googleRead" disabled>Leggi file di prova</button>
+
+      <div id="googleStatus" class="message">
+        Google Drive non collegato.
+      </div>
+    </section>
   </section>
 </main>
 
@@ -50,6 +64,8 @@
   </div>
 </div>
 
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="app.js"></script>
+<script src="google-drive.js"></script>
 </body>
 </html>
